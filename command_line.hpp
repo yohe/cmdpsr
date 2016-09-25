@@ -606,7 +606,7 @@ namespace command_parser {
             int id_op_ = 1;
             int id_p_ = 1;
 
-            std::regex lvtype_ {"--[\\w|-]*=[\"]?[\\w]*[\"]?"};
+            std::regex lvtype_ {"--[\\w|-]*=.*"};
             std::regex ltype_ {"--[\\w]*"};
             std::regex stype_ {"-[\\w]"};
         };
