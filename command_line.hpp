@@ -630,10 +630,10 @@ namespace command_parser {
             add_option_impl<detail::ValueOption>(long_name, short_name, message, def, validator);
         }
 
-        template <class T, class F>
+        template <class T, class U>
         void add_option(std::string long_name, char short_name, std::string message,
-                        T def_val, range<F> r) {
-            static_assert(std::is_same<T, F>::value, "missmach between type of value and type of range");
+                        T def_val, range<U> r) {
+            static_assert(std::is_same<T, U>::value, "missmach between type of value and type of range");
             std::string def = detail::to_str(def_val);
             add_option_impl<detail::ValueOption>(long_name, short_name, message, def, r);
         }
@@ -644,8 +644,9 @@ namespace command_parser {
             add_option_impl<detail::WithCandidateValueOption>(long_name, short_name, message, def, cand.candidates());
         }
 
-        template <class T>
-        void add_parameter(std::string name, std::string message, range<T> r) {
+        template <class T, class U>
+        void add_parameter(std::string name, std::string message, range<U> r) {
+            static_assert(std::is_same<T, U>::value, "missmach between type of value and type of range");
             add_parameter_impl<detail::RangeParameter<T>>(name, message, r);
         }
 
