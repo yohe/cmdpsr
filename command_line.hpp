@@ -6,11 +6,13 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <functional>
 #include <regex>
 #include <stdexcept>
 #include <sstream>
+#include <type_traits>
 
 namespace command_parser {
 
@@ -269,8 +271,14 @@ namespace command_parser {
                 if(is_exist(op->long_name())) {
                     throw std::logic_error("duplicated option");
                 }
+                if(op->long_name().length() > max_lname_length) {
+                    max_lname_length = op->long_name().length();
+                }
                 short_long_map.insert(std::make_pair(op->short_name(), op->long_name()));
                 options_.insert(std::make_pair(op->long_name(), std::move(op)));
+            }
+            int get_max_length() const {
+                return max_lname_length;
             }
             bool is_exist(const std::string& long_name) const {
                 return options_.count(long_name) == 1;
@@ -332,6 +340,7 @@ namespace command_parser {
                 return options_.empty();
             }
         private:
+            int max_lname_length = 0;
             std::map<char, std::string> short_long_map;
             std::map<std::string, std::unique_ptr<Option>> options_;
         };
@@ -621,9 +630,10 @@ namespace command_parser {
             add_option_impl<detail::ValueOption>(long_name, short_name, message, def, validator);
         }
 
-        template <class T>
+        template <class T, class F>
         void add_option(std::string long_name, char short_name, std::string message,
-                        T def_val, range<T> r) {
+                        T def_val, range<F> r) {
+            static_assert(std::is_same<T, F>::value, "missmach between type of value and type of range");
             std::string def = detail::to_str(def_val);
             add_option_impl<detail::ValueOption>(long_name, short_name, message, def, r);
         }
@@ -719,7 +729,14 @@ namespace command_parser {
             if( !options_.empty() ) {
                 std::cout << std::endl << "Options:" << std::endl;
                 for(const auto& op : options_) {
-                    std::cout << "  " << "--" + op.second->long_name() + " [-" + op.second->short_name() + "]" << "\t" << op.second->message() << std::endl;
+                    std::cout << "  " << "--" << op.second->long_name();
+                    int padding = options_.get_max_length() - op.second->long_name().size();
+                    if(op.second->has_value()) {
+                        std::cout << "=<value> " << std::setw(padding+2);
+                        std::cout << "[-" << op.second->short_name() <<  " <value>]" << "\t" << op.second->message() << std::endl;
+                    } else {
+                        std::cout << " " << std::setw(padding+10) << "[-" << op.second->short_name() << "]       " << "\t" << op.second->message() << std::endl;
+                    }
                 }
             }
 
